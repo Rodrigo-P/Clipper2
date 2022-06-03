@@ -16,10 +16,6 @@ using System.IO;
 namespace Clipper2Lib
 {
 
-  using PathD = List<PointD>;
-  using Paths64 = List<List<Point64>>;
-  using PathsD = List<List<PointD>>;
-
   public class SimpleClipperSvgWriter
   {
 

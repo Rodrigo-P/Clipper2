@@ -14,11 +14,6 @@ using System.Runtime.CompilerServices;
 
 namespace Clipper2Lib
 {
-
-  using Path64 = List<Point64>;
-  using Paths64 = List<List<Point64>>;
-  using PathD = List<PointD>;
-  using PathsD = List<List<PointD>>;
   public enum JoinType
   {
     Square,
@@ -84,7 +79,7 @@ namespace Clipper2Lib
     {
       int cnt = path.Count;
       if (cnt == 0) return;
-      PathsD pp = new PathsD(1) { ClipperFunc.PathD(path) };
+      Paths64 pp = new Paths64(1) {path};
       AddPaths(pp, joinType, endType);
     }
 
@@ -95,20 +90,20 @@ namespace Clipper2Lib
       _pathGroups.Add(new PathGroup(paths, joinType, endType));
     }
 
-    public void AddPath(PathD path, JoinType joinType, EndType endType)
-    {
-      int cnt = path.Count;
-      if (cnt == 0) return;
-      PathsD pp = new PathsD(1) { path };
-      AddPaths(pp, joinType, endType);
-    }
+    //public void AddPath(PathD path, JoinType joinType, EndType endType)
+    //{
+    //  int cnt = path.Count;
+    //  if (cnt == 0) return;
+    //  PathsD pp = new PathsD(1) { path };
+    //  AddPaths(pp, joinType, endType);
+    //}
 
-    public void AddPaths(PathsD paths, JoinType joinType, EndType endType)
-    {
-      int cnt = paths.Count;
-      if (cnt == 0) return;
-      _pathGroups.Add(new PathGroup(ClipperFunc.Paths64(paths), joinType, endType));
-    }
+    //public void AddPaths(PathsD paths, JoinType joinType, EndType endType)
+    //{
+    //  int cnt = paths.Count;
+    //  if (cnt == 0) return;
+    //  _pathGroups.Add(new PathGroup(ClipperFunc.Paths64(paths), joinType, endType));
+    //}
 
     public Paths64 Execute(double delta)
     {
