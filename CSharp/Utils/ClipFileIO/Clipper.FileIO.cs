@@ -16,6 +16,11 @@ using System.Diagnostics;
 namespace Clipper2Lib
 {
 
+  using Path64 = List<Point64>;
+  using PathD = List<PointD>;
+  using Paths64 = List<List<Point64>>;
+  using PathsD = List<List<PointD>>;
+
   public class ClipperFileIO
   {
     const int margin = 20;
@@ -223,7 +228,7 @@ namespace Clipper2Lib
       Paths64 result = new Paths64(paths.Count);
       foreach (Path64 path in paths)
       {
-        Path64 p = new Path64(path.Count, true);
+        Path64 p = new Path64(path.Count);
         foreach (Point64 pt in path)
           p.Add(new Point64(pt.X + dx, pt.Y + dy));
         result.Add(p);
