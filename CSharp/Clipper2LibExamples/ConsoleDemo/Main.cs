@@ -13,15 +13,11 @@ using System.Diagnostics;
 using System.Reflection;
 using System.IO;
 using Clipper2Lib;
+using System.Globalization;
+using System.Threading;
 
 namespace ClipperDemo1
 {
-
-  using Path64 = List<Point64>;
-  using Paths64 = List<List<Point64>>;
-  using PathD = List<PointD>;
-  using PathsD = List<List<PointD>>;
-
   public class Application
   {
 
@@ -31,11 +27,15 @@ namespace ClipperDemo1
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
 
-    private enum DoCase { simple, timedRandom, 
+    private enum DoCase { union, inflate, simple, timedRandom, 
       fromSimpleFile, fromTestFile, fromResource };
 
     public static void Main()
     {
+      CultureInfo ci = new CultureInfo("en-US");
+      Thread.CurrentThread.CurrentCulture = ci;
+      Thread.CurrentThread.CurrentUICulture = ci;
+
       Paths64 subj = new Paths64();
       Paths64 subj_open = new Paths64();
       Paths64 clip = new Paths64();
@@ -51,11 +51,44 @@ namespace ClipperDemo1
       int edgeCount = 1000; //for timed random simple benchmark
       /////////////////////////////////////////////////////////////////////////
       // choose your poison here ...
-      DoCase testCase = DoCase.simple;//fromResource;//timedRandom;//fromTestFile;//fromSimpleFile;//simple;//
+      DoCase testCase = DoCase.union;//.inflate;//.simple;//fromResource;//timedRandom;//fromTestFile;//fromSimpleFile;//simple;//
       /////////////////////////////////////////////////////////////////////////
 
       switch (testCase)
       {
+        case DoCase.union:
+          Paths64 p1 = new Paths64 { ClipperFunc.MakePath(new int[] { 336, 234, 314, 234, 314, 267, 336, 267 }) };
+          Paths64 p2 = new Paths64 { ClipperFunc.MakePath(new int[] { 358, 234, 336, 234, 336, 267, 358, 267 }) };
+          Paths64 p3 = new Paths64 { ClipperFunc.MakePath(new int[] { 380, 234, 358, 234, 358, 267, 380, 267 }) };
+
+          sol = ClipperFunc.Union(p1, p2, FillRule.EvenOdd);
+          sol = ClipperFunc.Union(sol, p3, FillRule.EvenOdd);
+
+          Console.WriteLine(p1.ToString());
+          Console.WriteLine(p2.ToString());
+          Console.WriteLine(p3.ToString());
+          Console.WriteLine(sol.ToString());
+          break;
+        case DoCase.inflate:
+          PathsD polyD = new PathsD();
+          PathsD resD;
+          Paths64 poly64 = new Paths64();
+          Paths64 res64;
+          //fillrule = FillRule.EvenOdd;
+
+          polyD.Add(ClipperFunc.MakePath(new double[] { 218.57, 500, 618.57, 500, 218.57, 800 }));
+          resD = ClipperFunc.InflatePaths(polyD, 5, JoinType.Round, EndType.Joined);
+
+          poly64.Add(ClipperFunc.MakePath(new int[] { 2185700, 5000000, 6185700, 5000000, 2185700, 8000000 }));
+          res64 = ClipperFunc.InflatePaths(poly64, 50000, JoinType.Round, EndType.Joined);
+
+
+          Console.WriteLine(polyD.ToString());
+          Console.WriteLine(resD.ToString());
+          Console.WriteLine(poly64.ToString());
+          Console.WriteLine(res64.ToString());
+
+          break;
         case DoCase.simple:
           fillrule = FillRule.NonZero;
           subj.Add(ClipperFunc.MakePath(new int[] { 100,50, 10,79, 65,2, 65,98, 10,21 }));
@@ -169,7 +202,7 @@ namespace ClipperDemo1
     public static Path64 MakeRandomPath(int width, int height, int count, Random rand)
     {
       rand.Next();
-      Path64 result = new Path64(count);
+      Path64 result = new Path64(count, true);
       for (int i = 0; i < count; ++i)
         result.Add(MakeRandomPt(width, height, rand));
       return result;
@@ -187,7 +220,7 @@ namespace ClipperDemo1
     public static PathD MakeRandomPathD(int width, int height, int count, Random rand)
     {
       rand.Next();
-      PathD result = new PathD(count);
+      PathD result = new PathD(count, true);
       for (int i = 0; i < count; ++i)
         result.Add(MakeRandomPtD(width, height, rand));
       return result;
@@ -205,7 +238,7 @@ namespace ClipperDemo1
       for (int i = 0; i < len; i++)
       {
         int len2 = reader.ReadInt32();
-        Path64 p = new Path64(len2);
+        Path64 p = new Path64(len2, true);
         for (int j = 0; j < len2; j++)
         {
           long X = reader.ReadInt64();

@@ -14,10 +14,6 @@ using System.Collections.Generic;
 
 namespace Clipper2Lib
 {
-  using Path64 = List<Point64>;
-  using Paths64 = List<List<Point64>>;
-  using PathD = List<PointD>;
-  using PathsD = List<List<PointD>>;
   public class Minkowski
   {
     private static Paths64 MinkowskiInternal(Path64 pattern, Path64 path, bool isSum, bool isClosed)
@@ -28,7 +24,7 @@ namespace Clipper2Lib
 
       foreach (Point64 pathPt in path)
       {
-        Path64 path2 = new Path64(patLen);
+        Path64 path2 = new Path64(patLen, true);
         if (isSum)
         {
           foreach (Point64 basePt in pattern)
@@ -50,7 +46,7 @@ namespace Clipper2Lib
       {
         for (int j = 0; j < patLen; j++)
         {
-          Path64 quad = new Path64(4)
+          Path64 quad = new Path64(4, true)
           {
             tmp[g][h], tmp[i][h], tmp[i][j], tmp[g][j]
           };

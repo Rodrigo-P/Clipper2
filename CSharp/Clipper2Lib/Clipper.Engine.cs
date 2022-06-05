@@ -18,11 +18,6 @@ using System.Runtime.CompilerServices;
 namespace Clipper2Lib
 {
 
-  using Path64  = List<Point64>;
-  using Paths64 = List<List<Point64>>;
-  using PathD   = List<PointD>;
-  using PathsD  = List<List<PointD>>;
-
   //Vertex: a pre-clipping data structure. It is used to separate polygons
   //into ascending and descending 'bounds' (or sides) that start at local
   //minima and ascend to a local maxima, before descending again.
@@ -3660,7 +3655,7 @@ namespace Clipper2Lib
     public ZCallbackD? ZFillDFunc { get; set; }
 #endif
 
-    public ClipperD(int roundingDecimalPrecision = 0)
+    public ClipperD(int roundingDecimalPrecision = 3)
     {
       if (roundingDecimalPrecision < -8 || roundingDecimalPrecision > 8)
         throw new ClipperLibException("Error - RoundingDecimalPrecision exceeds the allowed range.");
