@@ -1,7 +1,7 @@
 ﻿/*******************************************************************************
 * Author    :  Angus Johnson                                                   *
 * Version   :  10.0 (beta) - also known as Clipper2                            *
-* Date      :  10 May 2022                                                     *
+* Date      :  5 June 2022                                                     *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2022                                         *
 * Purpose   :  Offsets both open and closed paths (i.e. polylines & polygons). *
@@ -79,7 +79,7 @@ namespace Clipper2Lib
     {
       int cnt = path.Count;
       if (cnt == 0) return;
-      Paths64 pp = new Paths64(1) {path};
+      Paths64 pp = new Paths64(1) { path };
       AddPaths(pp, joinType, endType);
     }
 
