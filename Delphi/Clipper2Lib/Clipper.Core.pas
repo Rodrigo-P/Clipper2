@@ -3,7 +3,7 @@ unit Clipper.Core;
 (*******************************************************************************
 * Author    :  Angus Johnson                                                   *
 * Version   :  10.0 (beta) - aka Clipper2                                      *
-* Date      :  27 May 2022                                                     *
+* Date      :  7 June 2022                                                     *
 * Copyright :  Angus Johnson 2010-2022                                         *
 * Purpose   :  Core Clipper Library module                                     *
 *              Contains structures and functions used throughout the library   *
@@ -54,6 +54,7 @@ type
   //https://en.wikipedia.org/wiki/Nonzero-rule
   TFillRule = (frEvenOdd, frNonZero, frPositive, frNegative);
 
+  TArrayOfBoolean = array of Boolean;
   TArrayOfInteger = array of Integer;
   TArrayOfDouble = array of double;
 
@@ -103,9 +104,6 @@ function IsClockwise(const path: TPath64): Boolean; overload;
   {$IFDEF INLINING} inline; {$ENDIF}
 function IsClockwise(const path: TPathD): Boolean; overload;
   {$IFDEF INLINING} inline; {$ENDIF}
-
-function PointInPolygon(const pt: TPoint64;
-  const path: TPath64): TPointInPolygonResult;
 
 function CrossProduct(const pt1, pt2, pt3: TPoint64): double; overload;
   {$IFDEF INLINING} inline; {$ENDIF}
@@ -1251,23 +1249,23 @@ end;
 //corresponds with the display's orientation).
 function Area(const path: TPath64): Double;
 var
-  i, j, highI: Integer;
+  i, highI: Integer;
   d: double;
+  p1,p2: PPoint64;
 begin
+  //shoelace formula
   Result := 0.0;
   highI := High(path);
-  j := highI;
+  if highI < 2 then Exit;
+  p1 := @path[highI];
+  p2 := @path[0];
   for i := 0 to highI do
   begin
-    d := (path[j].Y - path[i].Y); //needed for Delphi7
-    Result := Result + d * (path[j].X + path[i].X);
-    j := i;
+    d := (p1.Y + p2.Y); //needed for Delphi7
+    Result := Result + d * (p1.X - p2.X);
+    p1 := p2; inc(p2);
   end;
-{$IFDEF REVERSE_ORIENTATION}
-  Result := Result * -0.5;
-{$ELSE}
   Result := Result * 0.5;
-{$ENDIF}
 end;
 //------------------------------------------------------------------------------
 
@@ -1284,21 +1282,20 @@ end;
 function Area(const path: TPathD): Double;
 var
   i, j, highI: Integer;
+  p1,p2: PPoint64;
 begin
+  //https://en.wikipedia.org/wiki/Shoelace_formula
   Result := 0.0;
   highI := High(path);
-  j := highI;
+  if highI < 2 then Exit;
+  p1 := @path[highI];
+  p2 := @path[0];
   for i := 0 to highI do
   begin
-    Result := Result +
-      (path[j].X + path[i].X) * (path[j].Y - path[i].Y);
-    j := i;
+    Result := Result + (p1.Y + p2.Y) * (p1.X - p2.X);
+    p1 := p2; inc(p2);
   end;
-{$IFDEF REVERSE_ORIENTATION}
-  Result := Result * -0.5;
-{$ELSE}
   Result := Result * 0.5;
-{$ENDIF}
 end;
 //------------------------------------------------------------------------------
 
@@ -1314,76 +1311,23 @@ end;
 
 function IsClockwise(const path: TPath64): Boolean;
 begin
+{$IFDEF REVERSE_ORIENTATION}
   Result := (Area(path) >= 0);
+{$ELSE}
+  Result := (Area(path) <= 0);
+{$ENDIF}
 end;
 //------------------------------------------------------------------------------
 
 function IsClockwise(const path: TPathD): Boolean;
 begin
+{$IFDEF REVERSE_ORIENTATION}
   Result := (Area(path) >= 0);
+{$ELSE}
+  Result := (Area(path) <= 0);
+{$ENDIF}
 end;
 //------------------------------------------------------------------------------
-
-function PointInPolygon(const pt: TPoint64;
-  const path: TPath64): TPointInPolygonResult;
-var
-  i, val, cnt: Integer;
-  d, d2, d3: Double; //using doubles to avoid possible integer overflow
-  ptCurr, ptPrev: TPoint64;
-begin
-  cnt := Length(path);
-  if cnt < 3 then
-  begin
-    result := pipOutside;
-    Exit;
-  end;
-  Result := pipOn;
-  val := 0;
-  ptPrev := path[cnt -1];
-  for i := 0 to cnt -1 do
-  begin
-    ptCurr := path[i];
-    if (ptPrev.Y = pt.Y) then
-    begin
-      if (ptPrev.X = pt.X) or ((ptCurr.Y = pt.Y) and
-        ((ptPrev.X > pt.X) = (ptCurr.X < pt.X))) then Exit;
-    end;
-
-    if ((ptCurr.Y < pt.Y) <> (ptPrev.Y < pt.Y)) then
-    begin
-      if (ptCurr.X >= pt.X) then
-      begin
-        if (ptPrev.X > pt.X) then val := 1 - val
-        else
-        begin
-          //d := CrossProduct(ptCurr, pt, ptPrev);
-          d2 := (ptCurr.X - pt.X); d3 := (ptPrev.X - pt.X);
-          d := d2 * (ptPrev.Y - pt.Y) - d3 * (ptCurr.Y - pt.Y);
-          if (d = 0) then Exit;
-          if ((d > 0) = (ptPrev.Y > ptCurr.Y)) then val := 1 - val;
-        end;
-      end else
-      begin
-        if (ptPrev.X > pt.X) then
-        begin
-          //d := CrossProduct(ptCurr, pt, ptPrev);
-          d2 := (ptCurr.X - pt.X); d3 := (ptPrev.X - pt.X);
-          d := d2 * (ptPrev.Y - pt.Y) - d3 * (ptCurr.Y - pt.Y);
-          if (d = 0) then Exit;
-          if ((d > 0) = (ptPrev.Y > ptCurr.Y)) then val := 1 - val;
-        end;
-      end;
-    end;
-    ptPrev := ptCurr;
-  end;
-
-  case val of
-    -1: result := pipOn;
-     1: result := pipInside;
-     else result := pipOutside;
-  end;
-end;
-//---------------------------------------------------------------------------
 
 function CrossProduct(const pt1, pt2, pt3: TPoint64): double;
 begin
@@ -1551,7 +1495,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure RDP(const path: TPath64; startIdx, endIdx: integer;
-  epsilonSqrd: double; var flags: TArrayOfInteger); overload;
+  epsilonSqrd: double; var boolArray: TArrayOfBoolean); overload;
 var
   i, idx: integer;
   d, maxD: double;
@@ -1561,7 +1505,7 @@ begin
 	while (endIdx > startIdx) and
     PointsEqual(path[startIdx], path[endIdx]) do
     begin
-      flags[endIdx] := 0;
+      boolArray[endIdx] := false;
       dec(endIdx);
     end;
   for i := startIdx +1 to endIdx -1 do
@@ -1573,9 +1517,9 @@ begin
     idx := i;
   end;
   if maxD < epsilonSqrd then Exit;
-  flags[idx] := 1;
-  if idx > startIdx + 1 then RDP(path, startIdx, idx, epsilonSqrd, flags);
-  if endIdx > idx + 1 then RDP(path, idx, endIdx, epsilonSqrd, flags);
+  boolArray[idx] := true;
+  if idx > startIdx + 1 then RDP(path, startIdx, idx, epsilonSqrd, boolArray);
+  if endIdx > idx + 1 then RDP(path, idx, endIdx, epsilonSqrd, boolArray);
 end;
 //------------------------------------------------------------------------------
 
@@ -1583,7 +1527,7 @@ function RamerDouglasPeucker(const path: TPath64;
   epsilon: double): TPath64;
 var
   i,j, len: integer;
-  buffer: TArrayOfInteger;
+  boolArray: TArrayOfBoolean;
 begin
   len := length(path);
   if len < 5 then
@@ -1591,14 +1535,14 @@ begin
     result := Copy(path, 0, len);
     Exit;
   end;
-  SetLength(buffer, len); //buffer is zero initialized
-  buffer[0] := 1;
-  buffer[len -1] := 1;
-  RDP(path, 0, len -1, Sqr(epsilon), buffer);
+  SetLength(boolArray, len); //already zero initialized
+  boolArray[0] := true;
+  boolArray[len -1] := true;
+  RDP(path, 0, len -1, Sqr(epsilon), boolArray);
   j := 0;
   SetLength(Result, len);
   for i := 0 to len -1 do
-    if buffer[i] = 1 then
+    if boolArray[i] then
     begin
       Result[j] := path[i];
       inc(j);
