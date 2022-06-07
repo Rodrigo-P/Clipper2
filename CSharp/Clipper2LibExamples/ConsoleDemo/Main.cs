@@ -51,7 +51,7 @@ namespace ClipperDemo1
       int edgeCount = 1000; //for timed random simple benchmark
       /////////////////////////////////////////////////////////////////////////
       // choose your poison here ...
-      DoCase testCase = DoCase.union;//.inflate;//.simple;//fromResource;//timedRandom;//fromTestFile;//fromSimpleFile;//simple;//
+      DoCase testCase = DoCase.inflate;//.inflate;//.simple;//fromResource;//timedRandom;//fromTestFile;//fromSimpleFile;//simple;//
       /////////////////////////////////////////////////////////////////////////
 
       switch (testCase)
@@ -76,8 +76,9 @@ namespace ClipperDemo1
           Paths64 res64;
           //fillrule = FillRule.EvenOdd;
 
-          polyD.Add(ClipperFunc.MakePath(new double[] { 218.57, 500, 618.57, 500, 218.57, 800 }));
+          polyD.Add(ClipperFunc.MakePath(new double[] { 314.57, 183.10, 314.57, 133.10, 556.57, 133.10, 556.57, 183.10 }));
           resD = ClipperFunc.InflatePaths(polyD, 5, JoinType.Round, EndType.Joined);
+          //PathsD r1 = ClipperFunc.InflatePaths(test, -10, JoinType.Round, EndType.Joined);
 
           poly64.Add(ClipperFunc.MakePath(new int[] { 2185700, 5000000, 6185700, 5000000, 2185700, 8000000 }));
           res64 = ClipperFunc.InflatePaths(poly64, 50000, JoinType.Round, EndType.Joined);
@@ -85,8 +86,8 @@ namespace ClipperDemo1
 
           Console.WriteLine(polyD.ToString());
           Console.WriteLine(resD.ToString());
-          Console.WriteLine(poly64.ToString());
-          Console.WriteLine(res64.ToString());
+          //Console.WriteLine(poly64.ToString());
+          //Console.WriteLine(res64.ToString());
 
           break;
         case DoCase.simple:

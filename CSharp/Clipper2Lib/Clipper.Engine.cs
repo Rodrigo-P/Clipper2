@@ -3321,13 +3321,14 @@ namespace Clipper2Lib
       }
     }
 
-    internal bool BuildPath(OutPt op, bool isOpen, Path64 path)
+    internal bool BuildPath(OutPt op, bool isOpen, Path64 path, bool isPoly)
     {
       try
       {
         int cnt = PointCount(op);
         if (cnt < 3 && (!isOpen || cnt < 2)) return false;
         path.Clear();
+        path.isPoly = isPoly;
 #if REVERSE_ORIENTATION
         op = op.next;
         Point64 lastPt = op.pt;
@@ -3376,12 +3377,12 @@ namespace Clipper2Lib
           Path64 path = new Path64();
           if (outrec.state == OutRecState.Open)
           {
-            if (BuildPath(outrec.pts!, true, path))
+            if (BuildPath(outrec.pts!, true, path, false))
               solutionOpen.Add(path);
           }
           else
           {
-            if (BuildPath(outrec.pts!, false, path))
+            if (BuildPath(outrec.pts!, false, path, outrec.state == OutRecState.Outer))
               solutionClosed.Add(path);
           }
         }
@@ -3510,7 +3511,7 @@ namespace Clipper2Lib
           bool isOpenPath = outrec.state == OutRecState.Open;
 
           Path64 path = new Path64();
-          if (!BuildPath(outrec.pts!, isOpenPath, path)) continue;
+          if (!BuildPath(outrec.pts!, isOpenPath, path, outrec.state == OutRecState.Outer)) continue;
 
           if (isOpenPath)
           {
@@ -3567,12 +3568,12 @@ namespace Clipper2Lib
 
   public class Clipper : ClipperBase
   {
-    internal new void AddPath(Path64 path, PathType polytype, bool isOpen = false)
+    public new void AddPath(Path64 path, PathType polytype, bool isOpen = false)
     {
       base.AddPath(path, polytype, isOpen);
     }
 
-    internal new void AddPaths(Paths64 paths, PathType polytype, bool isOpen = false)
+    public new void AddPaths(Paths64 paths, PathType polytype, bool isOpen = false)
     {
       base.AddPaths(paths, polytype, isOpen);
     }

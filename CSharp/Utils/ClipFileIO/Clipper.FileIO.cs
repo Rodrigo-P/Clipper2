@@ -223,7 +223,7 @@ namespace Clipper2Lib
       Paths64 result = new Paths64(paths.Count);
       foreach (Path64 path in paths)
       {
-        Path64 p = new Path64(path.Count, true);
+        Path64 p = new Path64(path.Count, path.isPoly);
         foreach (Point64 pt in path)
           p.Add(new Point64(pt.X + dx, pt.Y + dy));
         result.Add(p);

@@ -130,7 +130,7 @@ namespace Clipper2Lib
 
       ClipperOffset co = new ClipperOffset(miterLimit);
       co.AddPaths(ScalePaths64(paths, _scale), joinType, endType);
-      Paths64 tmp = co.Execute(delta);
+      Paths64 tmp = co.Execute(delta * _scale);
       return ScalePathsD(tmp, _invScale);
     }
 
@@ -187,7 +187,7 @@ namespace Clipper2Lib
 
     public static Path64 OffsetPath(Path64 path, long dx, long dy)
     {
-      Path64 result = new Path64(path.Count, true);
+      Path64 result = new Path64(path.Count, path.isPoly);
       foreach (Point64 pt in path)
         result.Add(new Point64(pt.X + dx, pt.Y + dy));
       return result;
@@ -207,7 +207,7 @@ namespace Clipper2Lib
     public static Path64 ScalePath(Path64 path, double scale)
     {
       if (scale == 1) return path;
-      Path64 result = new Path64(path.Count, true);
+      Path64 result = new Path64(path.Count, path.isPoly);
       foreach (Point64 pt in path)
         result.Add(new Point64(pt.X * scale, pt.Y * scale));
       return result;
@@ -225,7 +225,7 @@ namespace Clipper2Lib
     public static PathD ScalePath(PathD path, double scale)
     {
       if (scale == 1) return path;
-      PathD result = new PathD(path.Count, true);
+      PathD result = new PathD(path.Count, path.isPoly);
       foreach (PointD pt in path)
         result.Add(new PointD(pt, scale));
       return result;
@@ -244,7 +244,7 @@ namespace Clipper2Lib
     public static Path64 ScalePath64(PathD path, double scale)
     {
       int cnt = path.Count;
-      Path64 res = new Path64(cnt, true);
+      Path64 res = new Path64(cnt, path.isPoly);
       foreach (PointD pt in path)
         res.Add(new Point64(pt, scale));
       return res;
@@ -262,7 +262,7 @@ namespace Clipper2Lib
     public static PathD ScalePathD(Path64 path, double scale)
     {
       int cnt = path.Count;
-      PathD res = new PathD(cnt, true);
+      PathD res = new PathD(cnt, path.isPoly);
       foreach (Point64 pt in path)
         res.Add(new PointD(pt, scale));
       return res;
@@ -280,7 +280,7 @@ namespace Clipper2Lib
     //The static functions Path64 and PathD convert path types without scaling
     public static Path64 Path64(PathD path)
     {
-      Path64 result = new Path64(path.Count, true);
+      Path64 result = new Path64(path.Count, path.isPoly);
       foreach (PointD pt in path)
         result.Add(new Point64(pt));
       return result;
@@ -304,7 +304,7 @@ namespace Clipper2Lib
 
     public static PathD PathD(Path64 path)
     {
-      PathD result = new PathD(path.Count, true);
+      PathD result = new PathD(path.Count, path.isPoly);
       foreach (Point64 pt in path)
         result.Add(new PointD(pt));
       return result;
@@ -320,7 +320,7 @@ namespace Clipper2Lib
 
     public static PathD OffsetPath(PathD path, long dx, long dy)
     {
-      PathD result = new PathD(path.Count, true);
+      PathD result = new PathD(path.Count, path.isPoly);
       foreach (PointD pt in path)
         result.Add(new PointD(pt.x + dx, pt.y + dy));
       return result;
@@ -436,7 +436,7 @@ namespace Clipper2Lib
         double minEdgeLenSqrd, bool isClosedPath)
     {
       int cnt = path.Count;
-      PathD result = new PathD(cnt, true);
+      PathD result = new PathD(cnt, path.isPoly);
       if (cnt == 0) return result;
       PointD lastPt = path[0];
       result.Add(lastPt);
@@ -458,7 +458,7 @@ namespace Clipper2Lib
     public static Path64 StripDuplicates(Path64 path, bool isClosedPath)
     {
       int cnt = path.Count;
-      Path64 result = new Path64(cnt, true);
+      Path64 result = new Path64(cnt, path.isPoly);
       if (cnt == 0) return result;
       Point64 lastPt = path[0];
       result.Add(lastPt);
@@ -552,7 +552,7 @@ namespace Clipper2Lib
       flags[0] = 1;
       flags[len - 1] = 1;
       RDP(path, 0, len - 1, Sqr(epsilon), flags);
-      Path64 result = new Path64(len);
+      Path64 result = new Path64(len, path.isPoly);
       for (int i = 0; i < len; ++i)
         if (flags[i] == 1)
           result.Add(path[i]);
@@ -594,7 +594,7 @@ namespace Clipper2Lib
       flags[0] = 1;
       flags[len - 1] = 1;
       RDP(path, 0, len - 1, Sqr(epsilon), flags);
-      PathD result = new PathD(len);
+      PathD result = new PathD(len, path.isPoly);
       for (int i = 0; i < len; ++i)
         if (flags[i] == 1)
           result.Add(path[i]);

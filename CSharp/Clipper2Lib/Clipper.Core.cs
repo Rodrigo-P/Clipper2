@@ -29,6 +29,7 @@ namespace Clipper2Lib
       foreach (Point64 p in list) {
         Add(p);
       }
+      isPoly = list.isPoly;
     }
     public override string ToString()
     {
@@ -105,6 +106,7 @@ namespace Clipper2Lib
       {
         Add(p);
       }
+      isPoly = list.isPoly;
     }
     public override string ToString()
     {
@@ -297,7 +299,7 @@ namespace Clipper2Lib
     }
     public override string ToString()
     {
-      return $"{X},{Y} "; //nb: trailing space
+      return $"({X},{Y}) "; //nb: trailing space
     }
 
 #endif
@@ -406,7 +408,7 @@ namespace Clipper2Lib
 
     public override string ToString()
     {
-      return $"{x:F},{y:F} ";
+      return $"({x:F},{y:F}) ";
     }
 
 #endif
